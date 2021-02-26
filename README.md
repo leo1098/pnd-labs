@@ -1,5 +1,6 @@
-# pnd-labs
-Kathara labs for Practical Network Defense course at Sapienza
+# pnd-labs Solution
+
+Kathara labs for Practical Network Defense course at Sapienza solutions 
 
 Further details for the Kathara environment: https://github.com/KatharaFramework
 
