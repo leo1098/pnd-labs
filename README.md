@@ -1,4 +1,4 @@
-# pnd-labs Solution
+# pnd-labs Solutions
 
 Kathara labs for Practical Network Defense course at Sapienza solutions 
 
