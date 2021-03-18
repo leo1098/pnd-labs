@@ -21,3 +21,8 @@ and to properly set up the pc configurations.
 - the router has always 1 in the host part of its own address 
   even in its local-link address.
 
+FOR SOLUTION
+- set ip addresses for r1
+- change dibbler configuration uncommenting stateless and commenting 'ia'
+- add 'ra-names' to dnsmasq conf/dhcp-range
+- start dnsmasq in r1
