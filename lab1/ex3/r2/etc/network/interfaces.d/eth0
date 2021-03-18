@@ -1,0 +1,4 @@
+iface eth0 inet static
+        address 172.16.254.3
+        netmask 255.255.255.0  
+        gateway 172.16.254.1
