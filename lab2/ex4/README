@@ -21,3 +21,7 @@ You can use dibbler+radvd or dhcp6c+dnsmasq.
 - With dibbler, you will have to use a script to make router assigning an address to
   the interface in the network of the prefix. This will be used as the
   address radvd will advertise in the network for SLAAC configuration.
+
+FOR SOLUTION
+
+- add 'pd' for prefix delegation in r1/etc/dibbler/client.conf

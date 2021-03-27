@@ -1,0 +1,4 @@
+auto eth1
+iface eth1 inet6 static 
+	address fe80::1
+	netmask 64

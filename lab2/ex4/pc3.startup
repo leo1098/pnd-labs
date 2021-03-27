@@ -1,0 +1,2 @@
+dpkg -i /shared/*.deb
+dibbler-client start

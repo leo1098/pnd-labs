@@ -1,4 +1,22 @@
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
+# dpkg -i --force-confold /shared/dibbler-server*.deb /shared/radvd*.deb
 umount /etc/resolv.conf
 dpkg -i --force-confold /shared/*.deb
+apt install -fy radvd
 
+# bring up lan interfaces
+ifup eth1
+ifup eth2
+
+# make dibbler script executable
+chmod +x /etc/dibbler/client.sh
+
+# run dibbler-client to get prefixes form isp router
+sleep 1
+dibbler-client start
+
+# run radvd to advertise prefixes to the lan pcs
+radvd -m logfile -l /var/log/radvd.log
+
+# run stateless dibbler-server to advertise DNS address
+dibbler-server start
