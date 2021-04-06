@@ -29,3 +29,31 @@ NOTE: if you obtain the error "Table does not exist (do you need
 to insmod?)" issue the following command in the host machine
 
 $ sudo modprobe ip6table_filter
+
+FOR SOLUTION
+
+On r1:
+
+1]
+ip6tables -P FORWARD DROP
+iptables -P FORWARD DROP
+ip6tables -A FORWARD -s 2001:db8:cafe:1::/64 -p tcp/udp  --match multiport --dport 80,443 -m state --state=NEW,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -s 192.168.100.0/24 -p tcp/udp  --match multiport --dport 80,443 -m state --state=NEW,ESTABLISHED -j ACCEPT
+iptables -A FORWARD -d 192.168.100.0/24  -m state --state=ESTABLISHED -j ACCEPT
+ip6tables -A FORWARD -d 2001:db8:cafe:1::/64 -p tcp  -m state --state=ESTABLISHED -j ACCEPT
+
+2]
+iptables -A FORWARD -d 203.0.113.0/24  -p tcp --match multiport --dport 80,443,25 -j ACCEPT
+ip6tables -A FORWARD -d 2001:db8:cafe:2::/64  -p tcp --match multiport --dport 80,443,25 -j ACCEPT
+iptables -A FORWARD -d 203.0.113.0/24  -p icmp --icmp-type echo-request -j ACCEPT
+ip6tables -A FORWARD -d 2001:db8:cafe:2::/64  -p icmpv6 --icmpv6-type echo-request -j ACCEPT
+iptables -A FORWARD -s 203.0.113.0/24  -p icmp --icmp-type echo-reply -j ACCEPT
+ip6tables -A FORWARD -s 2001:db8:cafe:2::/64  -p icmpv6 --icmpv6-type echo-reply  -j ACCEPT
+iptables -A FORWARD -s 203.0.113.0/24  -p tcp -m state --state=ESTABLISHED -j ACCEPT
+ip6tables -A FORWARD -s 2001:db8:cafe:2::/64  -p tcp -m state --state=ESTABLISHED  -j ACCEPT
+
+3]
+iptables -A FORWARD -s 192.168.100.0/24 -p tcp --dport 22 -m state --state=NEW,ESTABLISHED -j ACCEPT
+ip6tables -A FORWARD -s 2001:db8:cafe:1::/64 -p tcp --dport 22 -m state --state=NEW,ESTABLISHED -j ACCEPT
+ip6tables -A FORWARD -d 2001:db8:cafe:1::/64 -p tcp --sport 22 -m state --state=ESTABLISHED  -j ACCEPT
+iptables -A FORWARD -d 192.168.100.0/24 -p tcp --sport 22 -m state --state=ESTABLISHED -j ACCEPT

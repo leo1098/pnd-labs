@@ -6,3 +6,12 @@ NOTE: if you obtain the error "Table does not exist (do you need
 to insmod?)" issue the following command in the host machine
 
 $ sudo modprobe ip6table_filter
+
+FOR SOLUTION
+connect to the 'external' network using the script with a ipv4/6 address
+
+add route:
+sudo ip r add 192.168.10.0/24 via 192.168.10.10 dev veth0
+or
+sudo ip -6 r add 2001:db8:cafe::/48 via 2001:db8:cafe:2::1 dev veth0
+
