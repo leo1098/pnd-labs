@@ -10,3 +10,17 @@ configure the router to act NAT and regulation.
 
 - r1 has to respond with TCP RST or ICMP Unreachable for incoming
   requests for blocked ports
+
+FOR SOLUTION:
+
+# natting
+iptables -A POSTROUTING -o eth1 -j MASQUERADE
+
+# drop all packets and deal with icmp
+iptables -P FORWARD DROP
+iptables -A FORWARD -i eth0 -j ACCEPT
+iptables -A FORWARD -p icmp --icmp-type=echo-reply -o eth0 -j ACCEPT
+
+iptables -A INPUT -i eth1 -j REJECT
+iptables -A INPUT -i eth1 -p icmp -j ACCEPT
+iptables -A INPUT -i eth1 -j REJECT --reject-with=icmp-net-unreachable
