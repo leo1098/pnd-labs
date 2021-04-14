@@ -1,9 +1,33 @@
 echo 'debconf debconf/frontend select Noninteractive' | debconf-set-selections
 dpkg -i /var/cache/apt/archives/*.deb
-apt install -f -y busybox udhcpd -o Dpkg::Options::="--force-confold" 
+#apt install -f -y busybox udhcpd -o Dpkg::Options::="--force-confold" 
+dpkg -i --force-confold  /var/cache/apt/archives/*.deb
 
 ip addr add 192.168.10.17/29 dev eth0
+#ip addr add 192.168.20.1/24 dev eth1
 
 udhcpd -S
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
+
+# masquerading outgoing traffic eth1
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+# SNAT
+# Change source ip to the router's one on incoming pkts
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+
+# DNAT
+# incoming packets are redirected to dedicated servers
+# http/https
+iptables -A PREROUTING -t nat -i eth1 -p tcp --dport 80 -j DNAT --to-destination 192.168.10.18:80
+iptables -A PREROUTING -t nat -i eth1 -p tcp --dport 443 -j DNAT --to-destination 192.168.10.18:443
+# ssh
+iptables -A PREROUTING -t nat -i eth1 -p tcp --dport 22 -j DNAT --to-destination 192.168.10.22:22
+
+# keep outgoing traffic on the same port
+iptables -I POSTROUTING -t nat -o eth1 -m multiport -p tcp --dports 22:443 -j MASQUERADE --to-ports 22-443
+
+# drop icmp and all other traffic
+iptables -A INPUT -i eth1 -j REJECT
+iptables -A FORWARD -i eth1  -m multiport -p tcp ! --dports 22,80,443 -j REJECT
