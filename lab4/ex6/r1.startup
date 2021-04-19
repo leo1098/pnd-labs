@@ -1,5 +1,42 @@
-ip addr add 192.168.10.1/29 dev eth0
-ip addr add 192.168.10.17/29 dev eth1
+# ip addr add 192.168.10.1/29 dev eth0
+# ip addr add 192.168.10.17/29 dev eth1
 
 echo "nameserver 8.8.8.8" > /etc/resolv.conf
 
+/etc/init.d/networking restart
+ifup eth0
+ifup eth1
+
+# outgoing traffic from lanA and lanB
+# iptables -P FORWARD DROP
+iptables -A FORWARD -i eth0 -j ACCEPT
+iptables -A FORWARD -i eth1 -j ACCEPT
+iptables -A FORWARD -i eth2 -m state --state ESTABLISHED,RELATED  -j ACCEPT
+
+# SNAT
+# Change source ip to the router's one on incoming pkts
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
+iptables -t nat -A POSTROUTING -o eth1 -j MASQUERADE
+
+# DNAT
+# incoming packets are redirected to dedicated servers
+# s1 http/https/ssh
+iptables -A PREROUTING -t nat -i eth2 -p tcp --dport 80 -j DNAT --to-destination 192.168.10.2:80
+iptables -A PREROUTING -t nat -i eth2 -p tcp --dport 443 -j DNAT --to-destination 192.168.10.2:443
+iptables -A PREROUTING -t nat -i eth2 -p tcp --dport 22 -j DNAT --to-destination 192.168.10.2:22
+# s2
+iptables -A PREROUTING -t nat -i eth2 -p tcp --dport 8080 -j DNAT --to-destination 192.168.10.18:80
+iptables -A PREROUTING -t nat -i eth2 -p tcp --dport 8088 -j DNAT --to-destination 192.168.10.18:443
+iptables -A PREROUTING -t nat -i eth2 -p tcp --dport 2222 -j DNAT --to-destination 192.168.10.18:22
+# keep outgoing traffic on the same port
+iptables -I POSTROUTING -t nat -o eth2 -m multiport -p tcp --dports 22:8088 -j MASQUERADE --to-ports 22-8088
+
+# masquerading outgoing traffic eth1
+iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE
+
+# Accept ICMP Response
+iptables -A FORWARD -i eth2 -p icmp --icmp-type echo-reply -j ACCEPT
+
+# drop icmp and all other traffic
+iptables -A INPUT -i eth2 -j REJECT
+iptables -I FORWARD -i eth2  -m multiport -p tcp ! --dports 22,80,443,2222,8080,8088 -j REJECT

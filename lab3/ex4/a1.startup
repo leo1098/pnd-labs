@@ -1,3 +1,11 @@
 dpkg -i /shared/lib*.deb
 
+ifdown eth0
+ifup eth0
+ifdown eth1
+ifup eth1
+
+make --directory=/thc-ipv6-3.6
+
+
 
